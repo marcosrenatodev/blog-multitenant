@@ -43,8 +43,11 @@ development:
 # Do not set this db to the same as development or production.
 test:
   <<: *default
-  url:  <%= ENV["DATABASE_URL"]  %>
-  database: blog_multitenant_test
+  host: localhost  # Ou 127.0.0.1
+  port: 5432
+  username: rails
+  password: password
+  database: rails_test
 
 # As with config/credentials.yml, you never want to store sensitive information,
 # like your database password, in your source code. If your source code is
