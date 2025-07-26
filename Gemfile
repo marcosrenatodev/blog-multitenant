@@ -29,6 +29,19 @@ gem "cssbundling-rails"
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
 gem "jbuilder"
 
+# multitenancy & auth
+gem "devise"
+gem "pundit"
+gem "friendly_id"
+gem "acts_as_tenant", "~> 0.5" # opcional p/ escapes de default_scope
+
+# SEO
+gem "meta-tags"
+gem "sitemap_generator"
+
+# Background / jobs
+gem "sidekiq"
+
 # Use Redis adapter to run Action Cable in production
 # gem "redis", ">= 4.0.1"
 
@@ -49,6 +62,8 @@ gem "bootsnap", require: false
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
+  gem "annotate"
+  gem "letter_opener_web"
   gem "debug", platforms: %i[ mri windows ]
 end
 

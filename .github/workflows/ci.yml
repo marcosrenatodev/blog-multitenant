@@ -1,0 +1,61 @@
+# .github/workflows/ci.yml
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-22.04
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: rails
+          POSTGRES_PASSWORD: password
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7
+        ports: ["6379:6379"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Yarn install
+        run: yarn install --frozen-lockfile
+
+      - name: Prepare DB
+        env:
+          RAILS_ENV: test
+        run: |
+          cp config/database.yml.dev config/database.yml
+          bin/rails db:prepare
+
+      - name: Run tests
+        run: bin/rake  # (ou `bin/rails test` se usar Minitest)
+
+  # Opcional — compila a imagem para garantir que o Dockerfile não quebrou
+  docker-build:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build production image
+        run: docker build --file Dockerfile --tag myapp:${{ github.sha }} .
