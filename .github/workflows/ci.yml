@@ -10,32 +10,46 @@ jobs:
         env:
           POSTGRES_USER: rails
           POSTGRES_PASSWORD: password
-        ports: ["5432:5432"]
-      redis:
-        image: redis:7
-        ports: ["6379:6379"]
+          POSTGRES_DB: rails_test       # garante BD
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd="pg_isready -U rails"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=5
 
     steps:
       - uses: actions/checkout@v4
 
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "3.3.8"
+          ruby-version: '3.3'
           bundler-cache: true
 
-      - name: Set up Node
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: '22'
+
+      # --------------------- ENV ---------------------
+      - name: Set test env vars
+        run: |
+          echo "RAILS_ENV=test"              >> $GITHUB_ENV
+          echo "DATABASE_URL=postgres://rails:password@postgres:5432/rails_test" >> $GITHUB_ENV
+          echo "REDIS_URL=redis://localhost:6379/1" >> $GITHUB_ENV
+
+      # opcional: esperar o Postgres (health-check já cobre, mas 100 % seguro)
+      - name: Wait for Postgres
+        run: |
+          for i in {1..20}; do
+            pg_isready -h postgres -U rails && break
+            echo "⚠️  Postgres ainda não está pronto…"; sleep 3
+          done
 
       - name: Yarn install
         run: yarn install --frozen-lockfile
 
       - name: Prepare DB
-        env:
-          RAILS_ENV: test
-          DATABASE_URL: postgres://rails:password@localhost:5432/rails_test
         run: bin/rails db:prepare
 
       - name: Run tests
-        run: bin/rails test # ou bundle exec rspec, se trocar para RSpec
+        run: bin/rails test
