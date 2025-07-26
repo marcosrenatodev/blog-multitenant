@@ -1,8 +1,33 @@
 services:
   web:
+    stdin_open: true   # ← mantém STDIN vivo dentro do contêiner
+    tty: true          # ← aloca pseudo-TTY
+    user: root
     environment:
       RAILS_ENV: development
-      BUNDLE_WITHOUT: "test"
-    command: bash -c "bundle exec rails db:prepare && bin/dev"
+      BUNDLE_WITHOUT: ""
+      BUNDLE_PATH: /home/rails/bundle
+      PATH: "/usr/local/node/bin:/usr/local/bin:/usr/local/bundle/bin:/home/rails/bundle/bin:${PATH}"
+    command: >-
+      bash -c "
+        command -v make >/dev/null || (
+          apt-get update -qq &&
+          apt-get install --no-install-recommends -y build-essential libpq-dev libyaml-dev pkg-config git
+        ) &&
+
+        chown -R rails:rails /home/rails/bundle &&
+
+        su rails -c '
+          bundle install --quiet &&
+          bin/rails db:prepare &&
+          bin/dev
+        '
+      "
     volumes:
-      - .:/rails    # code-mount para hot reload
+      - .:/rails
+      - bundle:/home/rails/bundle
+      - node_modules:/rails/node_modules
+
+volumes:
+  bundle:
+  node_modules:

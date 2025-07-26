@@ -58,18 +58,22 @@ RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y curl libvips postgresql-client libyaml-0-2 && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
+# ─── NEW: copiamos o Node + Yarn construídos no estágio build ───
+COPY --from=build /usr/local/node /usr/local/node
+ENV PATH="/usr/local/node/bin:${PATH}"
+# ────────────────────────────────────────────────────────────────
+
 # Copy built artifacts: gems, application
 COPY --from=build /usr/local/bundle /usr/local/bundle
 COPY --from=build /rails /rails
 
 # Run and own only the runtime files as a non-root user for security
 RUN useradd rails --create-home --shell /bin/bash && \
-    chown -R rails:rails db log storage tmp
+    chown -R rails:rails db log storage tmp /usr/local/bundle
 USER rails:rails
 
 # Entrypoint prepares the database.
 ENTRYPOINT ["/rails/bin/docker-entrypoint"]
 
-# Start the server by default, this can be overwritten at runtime
 EXPOSE 3000
 CMD ["./bin/rails", "server"]
