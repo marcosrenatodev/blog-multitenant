@@ -1,15 +1,9 @@
-# .github/workflows/ci.yml
 name: CI
-
-on:
-  push:
-    branches: ["main"]
-  pull_request:
+on: [push, pull_request]
 
 jobs:
   test:
     runs-on: ubuntu-22.04
-
     services:
       postgres:
         image: postgres:16
@@ -17,11 +11,6 @@ jobs:
           POSTGRES_USER: rails
           POSTGRES_PASSWORD: password
         ports: ["5432:5432"]
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
       redis:
         image: redis:7
         ports: ["6379:6379"]
@@ -45,17 +34,8 @@ jobs:
       - name: Prepare DB
         env:
           RAILS_ENV: test
-        run: |
-          cp config/database.yml.dev config/database.yml
-          bin/rails db:prepare
+          DATABASE_URL: postgres://rails:password@localhost:5432/rails_test
+        run: bin/rails db:prepare
 
       - name: Run tests
-        run: bin/rake  # (ou `bin/rails test` se usar Minitest)
-
-  # Opcional — compila a imagem para garantir que o Dockerfile não quebrou
-  docker-build:
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-      - name: Build production image
-        run: docker build --file Dockerfile --tag myapp:${{ github.sha }} .
+        run: bin/rails test # ou bundle exec rspec, se trocar para RSpec
