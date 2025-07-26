@@ -1,5 +1,4 @@
-# README
-
+[![CI](https://github.com/marcosrenatodev/blog-multitenant/actions/workflows/ci.yml/badge.svg)](https://github.com/marcosrenatodev/blog-multitenant/actions/workflows/ci.yml)
 ### Setup rápido
 
 ```bash
