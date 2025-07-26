@@ -1,0 +1,18 @@
+#!/bin/bash
+set -e
+
+# 1. Executa apenas os testes essenciais (rápidos)
+echo "🚀 Executando verificações pré-commit..."
+
+# 2. Linters (extremamente rápidos)
+docker compose run --rm web bundle exec rubocop -a --fail-level warning
+docker compose run --rm web yarn lint:fix
+
+# 3. Testes unitários (apenas os mais relevantes)
+docker compose run --rm web bin/rails test:units
+
+# 4. Verificação de segurança básica
+docker compose run --rm web bundle audit check --update
+docker compose down
+
+echo "✅ Pré-commit verificado com sucesso!"
