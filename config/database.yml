@@ -1,17 +1,4 @@
-# PostgreSQL. Versions 9.3 and up are supported.
-#
-# Install the pg driver:
-#   gem install pg
-# On macOS with Homebrew:
-#   gem install pg -- --with-pg-config=/usr/local/bin/pg_config
-# On Windows:
-#   gem install pg
-#       Choose the win32 build.
-#       Install PostgreSQL and put its /bin directory on your path.
-#
-# Configure Using Gemfile
-# gem "pg"
-#
+
 default: &default
   adapter: postgresql
   encoding: unicode
@@ -57,8 +44,12 @@ development:
 # Do not set this db to the same as development or production.
 test:
   <<: *default
+  host: localhost  # Ou 127.0.0.1
+  port: 5432
+  username: rails
+  password: password
   url:  <%= ENV["DATABASE_URL"] ||
-           "postgres://#{ENV['POSTGRES_USER']||'rails'}:#{ENV['POSTGRES_PASSWORD']||'password'}@db:5432/blog_multitenant_test" %>
+           "postgres://#{ENV['POSTGRES_USER']||'rails'}:#{ENV['POSTGRES_PASSWORD']||'password'}@db:5432/rails_test" %>
 
 
 # As with config/credentials.yml, you never want to store sensitive information,
@@ -83,6 +74,7 @@ test:
 #
 production:
   <<: *default
-  url: <%= ENV["DATABASE_URL"] %>
+  url:  <%= ENV["DATABASE_URL"]  %>
+  database: blog_multitenant_production
   username: blog_multitenant
   password: <%= ENV["BLOG_MULTITENANT_DATABASE_PASSWORD"] %>

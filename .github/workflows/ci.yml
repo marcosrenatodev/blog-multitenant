@@ -4,13 +4,15 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-22.04
+    timeout-minutes: 30  # Adicione timeout
+
     services:
       postgres:
         image: postgres:16
         env:
           POSTGRES_USER: rails
           POSTGRES_PASSWORD: password
-          POSTGRES_DB: rails_test       # garante BD
+          POSTGRES_DB: rails_test
         ports: ['5432:5432']
         options: >-
           --health-cmd="pg_isready -U rails"
@@ -21,30 +23,35 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Configuração inicial
+      - name: Install system dependencies
+        run: sudo apt-get install -y libpq-dev
+
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.3'
+          ruby-version: '3.3.8'
           bundler-cache: true
 
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
 
-      # --------------------- ENV ---------------------
+      # Configuração do ambiente
       - name: Set test env vars
         run: |
-          echo "RAILS_ENV=test"              >> $GITHUB_ENV
-          echo "DATABASE_URL=postgres://rails:password@postgres:5432/rails_test" >> $GITHUB_ENV
-          echo "REDIS_URL=redis://localhost:6379/1" >> $GITHUB_ENV
+          echo "RAILS_ENV=test" >> $GITHUB_ENV
+          echo "DATABASE_URL=postgres://rails:password@localhost:5432/rails_test" >> $GITHUB_ENV
 
-      # opcional: esperar o Postgres (health-check já cobre, mas 100 % seguro)
+      # Espera o PostgreSQL ficar pronto
       - name: Wait for Postgres
         run: |
-          for i in {1..20}; do
-            pg_isready -h postgres -U rails && break
-            echo "⚠️  Postgres ainda não está pronto…"; sleep 3
+          for i in {1..10}; do
+            pg_isready -h localhost -U rails && exit 0
+            sleep 3
           done
+          exit 1
 
+      # Instalação e testes
       - name: Yarn install
         run: yarn install --frozen-lockfile
 
