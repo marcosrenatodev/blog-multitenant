@@ -37,8 +37,13 @@ git commit --no-verify -m "mensagem"
 
 ---
 
+### ambiente testes
 
+roda o serviço de testes \(ele vai usar o override do test\)
 
+```bash
+docker-compose -f docker-compose.yml -f docker-compose.test.yml run --rm test
+```
 Depending on your application's configuration some manual setup may be required:
 
   1. Ensure you have defined default url options in your environments files. Here

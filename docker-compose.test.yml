@@ -1,0 +1,22 @@
+services:
+  test:
+    # herda tudo de build/imagem do web sem usar extends
+    build: .
+    working_dir: /usr/src/app
+    user: root
+    environment:
+      RAILS_ENV: test
+    volumes:
+      - .:/usr/src/app          # monta todo o seu projeto
+      - test_db_data:/var/lib/postgresql/data
+    command: >
+      sh -euc "
+        mkdir -p log &&
+        touch log/test.log &&
+        chmod 0664 log/test.log &&
+
+        bin/rails db:prepare &&
+        bin/rails test
+      "
+volumes:
+  test_db_data:
