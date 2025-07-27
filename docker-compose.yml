@@ -4,6 +4,7 @@ services:
   db:
     image: postgres:16
     restart: unless-stopped
+    mem_limit: 256m
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -13,10 +14,12 @@ services:
   redis:
     image: redis:7
     restart: unless-stopped
+    mem_limit: 128m
 
   web:
     env_file: .env
     build: .
+    mem_limit: 512m
     depends_on:
       - db
       - redis
@@ -27,7 +30,8 @@ services:
       REDIS_URL: "${REDIS_URL}"
       RAILS_SERVE_STATIC_FILES: "true"   # Rails expõe /public
       RAILS_LOG_TO_STDOUT: "true"
-      SECRET_KEY_BASE: "${SECRET_KEY_BASE}"  # ou monte do host
+      SECRET_KEY_BASE: "${SECRET_KEY_BASE}"
+      RAILS_MASTER_KEY: "${RAILS_MASTER_KEY}"  # ou monte do host
     # ─────────────── Volumes úteis ───────────────
     volumes:
       - ./storage:/rails/storage         # ActiveStorage
@@ -38,6 +42,7 @@ services:
 
   nginx:
     image: nginx:1.27-alpine
+    mem_limit: 128m
     depends_on:
       - web
     ports:
